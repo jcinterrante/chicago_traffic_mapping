@@ -98,12 +98,47 @@ from github.
 1.  Look at Vision Zero Neighborhood High Crash Corridor #7. Plot the accidents in 
     this corridor on a map. 
     
+Vision Zero Neighborhood High Crash Cooridor #7 is from George to Chicago along Western Ave. 
+    
 ```{r}
-# YOUR CODE GOES HERE  (Please delete)
+?ggmap
+?get_stamenmap
+
+chi_vector <- c(left = -87.725,
+                bottom = 41.88,
+                right = -87.66,
+                top = 41.94)
+
+chi_stamenmap <- get_stamenmap(bbox = chi_vector,
+                               zoom = 13,
+                               maptype = "terrain")
+map1 <- ggmap(chi_stamenmap)+
+  geom_point(data = chi_a, mapping = aes(x = location_x, y=location_y))
+map1
+#map with no points on it
+
+chi_a <- chi_a%>%
+  filter(between(location_y, 41.895759, 41.933964),
+         str_detect(street, "N Western Ave"))
+#making the dataframe more specific 
+
+
+
+
 ```
 
-1.  Around what intersection are accidents most common? Use Google Street View to look 
-    at this intersection. Do you see any problems?
+1.  Around what intersection are accidents most common? Use Google Street View to lookat this intersection. Do you see any problems?
+
+The intersection that seems to be causing the most issue on Western is Western and Charleston. The data frame suggests this is because of a pot hole. However, on google street view, I cannot locate the pot hole they are referencing.
+```{r}
+intersection <- chi_a%>%
+  group_by(location_y)%>%
+  count()%>%
+  arrange(desc(n))
+intersection
+
+
+```
     
 
 # Transit Oriented Development (15 points)
