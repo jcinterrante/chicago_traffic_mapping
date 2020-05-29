@@ -1,7 +1,7 @@
 ---
-title: "Markdown Headers"
-author: "Yuxi Wu"
-date: "29/03/2020"
+title: "Applied PSET 3"
+author: "Jodie Lawrence & Jake Interrante"
+date: "05/29/2020"
 output:
   html_document:
     number_sections: yes
@@ -9,6 +9,8 @@ output:
 ---
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
+
+rm(list = ls())
 ```
 
 <!-- .Rmd files use  markdown, a text mark up language, to provide formating.--> 
@@ -23,13 +25,13 @@ Follow the style guide (10 pts.)
 
 This submission is our work alone and complies with the 30535 integrity policy.
 
-Add your initials to indicate your agreement: **__**
+Add your initials to indicate your agreement: **JL & JI**
 
 Add names of anyone you discussed this problem set with: **__**
 
 Submit by pushing your code to your repo on Github Classroom: https://classroom.github.com/g/5vDiXToZ.
 
-Late coins used this pset: X. Late coins left: X. 
+Late coins used this pset: X. Late coins left: 7 
 <!--Please update. You may use up to two for a given assignment. Note we added 5 late coins for a total of 9 for the quarter.)-->
 
 __waze data__
@@ -74,14 +76,80 @@ your final grade will be $90 \cdot .9 = 81$.
     a. `collect()` a small sample data set so that the you have data in memory on your     
        computer.
     a. `collect()` the entire data set each time you want to work with it.
+    
+    
+```{r}
+#libraries
+library(tidyverse)
+install.packages("RMySQL")
+install.packages("ggmap")
+install.packages("ggpubr")
+install.packages("dbplyr")
+install.packages("DBI")
+library(ggmap)
+library(ggpubr)
+library(RMySQL)
+library(dbplyr)
+library(DBI)
+```
 
-1. As is the case with any data set, Waze has to make decisions about what data
+```{r access waze data}
+# Create connection to Waze database
+con <- DBI::dbConnect(RMySQL::MySQL(),
+                      host = "uchicagowaze.cfykgneqoh8w.us-west-2.rds.amazonaws.com",
+                      user = "ppha30531",
+                      dbname="Waze2",
+                      port = 3306,
+                      password = "bUYjwnKXf49M2pb",
+)
+# Show which tables are available from the Waze database
+DBI::dbListTables(con)
+
+# Create table referencing the data in the chiAlerts table
+# of the waze database
+chi_sql <- tbl(con, "chiAlerts")
+```
+
+```{r}
+# Create local variable for data with a specified UUID
+# and time it
+before <- Sys.time()
+event_data <- chi_sql %>%
+  filter(uuid == "c5a73cc6-5242-3172-be5a-cf8990d70cb2") %>%
+  collect()
+after <- Sys.time()
+after - before
+
+# Save collected data as an rds file, access and read it
+saveRDS(event_data, file = "event_data.rds")
+event_data <- readRDS(file = "event_data.rds")
+
+# View active connections
+dbListConnections(MySQL())
+
+# End active connections
+lapply( dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+
+```
+
+```{r}
+
+chi_a <- chi_sql%>%
+  filter(city == "Chicago, IL")%>%
+  collect()
+#5155542 observations
+
+```
+
+2. As is the case with any data set, Waze has to make decisions about what data
   to store and how to measure it. Review the data documentation and the rest of 
   the problem set. Propose a variable that Waze could feasibly track that is not 
   available now or feasible and better way a to measure a variable currently in 
   the dataset. Support your proposal with reasoning.
+  
+  
 
-1. As is the case with most consumer data, Waze users are self-selecting. Write a 
+3. As is the case with most consumer data, Waze users are self-selecting. Write a 
   few detailed sentences about how you think self-selection influences what data 
   is present. 
     
