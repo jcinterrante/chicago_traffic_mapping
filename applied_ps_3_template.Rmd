@@ -150,23 +150,110 @@ intersection
   
     a. For each corridor, plot traffic alerts by time of day.
     
+The time that has the most observations is 3:15 for the 79 bus. For the 66 bus, the observations are mostly happening between 11pm and 12am. 
+    
 ```{r}
+chi_b <- chi_sql%>%
+  filter(city == "Chicago, IL")%>%
+  filter(between(location_x, -87.741481, -87.548168),
+str_detect(street, "79"))%>%
+  collect()
+#79th street, time not split
+
+chi_b_time <- chi_b%>%
+  separate(scrape_dt, into = c("date", "time"), sep = " ")%>%
+  group_by(time)%>%
+  filter(type == "JAM"|
+         type == "ACCIDENT")%>%
+  count()%>%
+  arrange(desc(n))%>%
+  ggplot(mapping=aes(x=time, y=n))+
+  geom_col()+
+  labs(x = "Time of Day", y= "Number of Alerts (Jams and Accidents)", title = "Number of Alerts by Time of Day for Bus Route 79")
+
+chi_b_time
+
+```
+
+```{r}
+chi_c <- chi_sql%>%
+  filter(city == "Chicago, IL")%>%
+  filter(between(location_x, -87.775126, -87.617101),
+         str_detect(street, "Chicago Ave"))%>%
+  collect()
+#bus 66 - Chicago to austin
+
+chi_c_time <- chi_c%>%
+    separate(scrape_dt, into = c("date", "time"), sep = " ")%>%
+  group_by(time)%>%
+  filter(type == "JAM"|
+         type == "ACCIDENT")%>%
+  count()%>%
+  arrange(desc(n))%>%
+  ggplot(mapping=aes(x=time, y=n))+
+  geom_col()+
+  labs(x = "Time of Day", y= "Number of Alerts (Jams and Accidents)", title = "Number of Alerts by Time of Day for Bus Route 66")
+chi_c_time
 
 ```
     
-    a. Using a reasoned approach, choose two additional corridors for comparison.
+    b. Using a reasoned approach, choose two additional corridors for comparison.
           i. What corridors did you choose and why?
+          
+For this, I decided to cross-reference the Vision Zero Plan and the Chicago Transit Development Rules website to find two corridors to compare. I picked 55th Garfield, which is corridor 22 on the Vision Zero Plan and also Ashland Avenue, corridor 10. These were both listed as high crash corridors and also as part of the Transit of Development. (https://www.map-strategies.com/blog/2019/1/24/chicagos-transit-oriented-development-rules-have-been-extended-to-bus-routes)
+         
           ii. Make comparison plots.
           
+          
 ```{r}
+#corridor 22 - Garfield Blvd - Halsted to King
+chi_d <- chi_sql%>%
+  filter(city == "Chicago, IL")%>%
+  filter(between(location_x, -87.645313, -87.615983),
+         str_detect(street, "Garfield"))%>%
+  collect()
+
+chi_d_time <- chi_d%>%
+    separate(scrape_dt, into = c("date", "time"), sep = " ")%>%
+  group_by(time)%>%
+  filter(type == "JAM"|
+         type == "ACCIDENT")%>%
+  count()%>%
+  arrange(desc(n))%>%
+  ggplot(mapping=aes(x=time, y=n))+
+  geom_col()+
+  labs(x = "Time of Day", y= "Number of Alerts (Jams and Accidents)", title = "Number of Alerts by Time of Day for Corridor 22")
+chi_d_time
 
 ```
-  
-    a. Looking beyond traffic, what other alerts are very common in this area? 
+
+```{r}
+#corridor 10 - Ashland - Fullerton to Van Buren
+chi_e <- chi_sql%>%
+  filter(city == "Chicago, IL")%>%
+  filter(between(location_y, 41.876369, 41.925189),
+         str_detect(street, "Ashland"))%>%
+  collect()
+
+chi_e_time <- chi_e%>%
+    separate(scrape_dt, into = c("date", "time"), sep = " ")%>%
+  group_by(time)%>%
+  filter(type == "JAM"|
+         type == "ACCIDENT")%>%
+  count()%>%
+  arrange(desc(n))%>%
+  ggplot(mapping=aes(x=time, y=n))+
+  geom_col()+
+  labs(x = "Time of Day", y= "Number of Alerts (Jams and Accidents)", title = "Number of Alerts by Time of Day for Corridor 10")
+chi_e_time
+
+```
+    c. Looking beyond traffic, what other alerts are very common in this area? 
       Do you think these alerts would slow down the 66 / 79? If so, what steps 
       could the City take to address the issues?
       
 ```{r}
+
 
 ```
       
