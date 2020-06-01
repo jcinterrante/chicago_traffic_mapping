@@ -119,7 +119,8 @@ map1
 
 chi_a <- chi_a%>%
   filter(between(location_y, 41.895759, 41.933964),
-         str_detect(street, "N Western Ave"))
+         str_detect(street, "N Western Ave"),
+         type == "ACCIDENT")
 #making the dataframe more specific 
 
 
@@ -153,6 +154,8 @@ intersection
 The time that has the most observations is 3:15 for the 79 bus. For the 66 bus, the observations are mostly happening between 11pm and 12am. 
     
 ```{r}
+library(lubridate)
+
 chi_b <- chi_sql%>%
   filter(city == "Chicago, IL")%>%
   filter(between(location_x, -87.741481, -87.548168),
@@ -161,13 +164,12 @@ str_detect(street, "79"))%>%
 #79th street, time not split
 
 chi_b_time <- chi_b%>%
-  separate(scrape_dt, into = c("date", "time"), sep = " ")%>%
-  group_by(time)%>%
+  mutate(event_date_time = as.POSIXct(pubMillis/1000, origin = "1970-01-01"))%>%
+  group_by(event_date_time)%>%
   filter(type == "JAM"|
          type == "ACCIDENT")%>%
-  count()%>%
-  arrange(desc(n))%>%
-  ggplot(mapping=aes(x=time, y=n))+
+  summarise(number = n())%>%
+  ggplot(mapping=aes(x=hour(event_date_time), y=number))+
   geom_col()+
   labs(x = "Time of Day", y= "Number of Alerts (Jams and Accidents)", title = "Number of Alerts by Time of Day for Bus Route 79")
 
@@ -184,13 +186,12 @@ chi_c <- chi_sql%>%
 #bus 66 - Chicago to austin
 
 chi_c_time <- chi_c%>%
-    separate(scrape_dt, into = c("date", "time"), sep = " ")%>%
-  group_by(time)%>%
+  mutate(event_date_time = as.POSIXct(pubMillis/1000, origin = "1970-01-01"))%>%
+  group_by(event_date_time)%>%
   filter(type == "JAM"|
          type == "ACCIDENT")%>%
-  count()%>%
-  arrange(desc(n))%>%
-  ggplot(mapping=aes(x=time, y=n))+
+  summarise(number = n())%>%
+  ggplot(mapping=aes(x=hour(event_date_time), y=number))+
   geom_col()+
   labs(x = "Time of Day", y= "Number of Alerts (Jams and Accidents)", title = "Number of Alerts by Time of Day for Bus Route 66")
 chi_c_time
@@ -253,10 +254,37 @@ chi_e_time
       could the City take to address the issues?
       
 ```{r}
+chi_b <- chi_sql%>%
+  filter(city == "Chicago, IL")%>%
+  filter(between(location_x, -87.741481, -87.548168),
+str_detect(street, "79"))%>%
+  collect()
+#79th street, time not split
+
+chi_b_all <- chi_b%>%
+  mutate(event_date_time = as.POSIXct(pubMillis/1000, origin = "1970-01-01"))%>%
+  filter(type != "ROAD_CLOSED")%>%
+  ggplot(mapping=aes(x=hour(event_date_time), fill = type))+
+  geom_bar(position = "dodge")+
+  labs(x = "Time of Day", y= "Number of Alerts", title = "Number of Alerts by Time of Day for Bus Route 79")
+
+chi_b_all
 
 
 ```
-      
+
+```{r}
+#bus 66
+chi_c_all <- chi_c%>%
+  mutate(event_date_time = as.POSIXct(pubMillis/1000, origin = "1970-01-01"))%>%
+  filter(type != "ROAD_CLOSED")%>%
+  ggplot(mapping=aes(x=hour(event_date_time), fill = type))+
+  geom_bar(position = "dodge")+
+  labs(x = "Time of Day", y= "Number of Alerts", title = "Number of Alerts by Time of Day for Bus Route 66")
+chi_c_all
+
+
+```
 # Waze single event (20 point)
 
 1.  Revisit the event which caused c5a73cc6-5242-3172-be5a-cf8990d70cb2. 
