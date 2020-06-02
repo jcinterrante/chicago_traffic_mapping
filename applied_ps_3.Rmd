@@ -465,17 +465,6 @@ Make a plot where the y-axis is the number of traffic jam alerts and the x-axis 
 This question is harder than it first appears. You might want to review R4DS chapter 12.5 (lecture note 5) on missing values and chapter 16.4 (lecture note 9). 
 
 ```{r}
-#categories <- minutes(seq(-120,120,5))
-#categories
-#library(forcats)
-#factor(minutes(5), levels = categories)
-#class(minutes(5))
-
-
-#class(minutes(seq(-120,120,5)))
-
-#factor(1, levels = c(1:3))
-
 categories <- c(-24:24)
 multiple_event_data%>%
 mutate(event_epoch_millis = pubMillis - convert_to_millis(event_date_time), 
@@ -512,10 +501,6 @@ get_alert_summary <- function(uuid, date_time, latitude, longitude){
                       host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
   )
   chi_alerts_sql <- tbl(connection, "chiAlerts")
-  
-#  time_bounds <- convert_to_millis(date_time)	+ c(-7200000, 7200000)
-#  x_bounds <- longitude + c(-.1 / 69,.1 / 69)
-#  y_bounds <- latitude + c(-.1 / 69,.1 / 69)
   
   time_min <- convert_to_millis(date_time) - 7200000
   time_max<- convert_to_millis(date_time) + 7200000
@@ -589,16 +574,7 @@ multiple_event_data <- multiple_event_data%>%
 #http://www.datasciencemadesimple.com/remove-duplicate-rows-r-using-dplyr-distinct-function/
 
 subset <- multiple_event_data%>%head(5)
-#subset_list<-list(uuid = subset$uuid, 
- #                 date_time = subset$event_date_time, 
-  #                latitude = subset$location_y, 
-   #               longitude = subset$location_x)
 
-
-#get_alert_summary(uuid = subset$uuid, 
- #                 date_time = subset$event_date_time, 
-  #                latitude = subset$location_y, 
-   #               longitude = subset$location_x)
 test <- list("df0ae6f2-22ae-3977-8168-0290610801f9",
                   as.POSIXct (1511837969275/1000, origin="1970-01-01"),
                   41.8421,
@@ -608,22 +584,6 @@ as.POSIXct (1511837969275/1000, origin="1970-01-01")
 
 subset_test <-""
 
-
-#for(i in seq_along(1:nrow(subset))){
- # subset_test[i] <-list(get_alert_summary(uuid = subset$uuid[i], 
-  #                                  date_time = subset$event_date_time[i], 
-   #                                 latitude = subset$location_y[i], 
-    #                                longitude = subset$location_x[i]))
-#}
-
-#combined_table <- colnames(subset_test)
-
-#for(i in seq_along(1:length(subset_test))){
- # combined_table <- bind_rows(combined_table, subset_test[[i]])
-#}
-
-#combined_table %>% group_by(bucket)%>%
- # summarize(mean(count))
 
 alert_summary <- ""
 for(i in seq_along(1:nrow(multiple_event_data))){
