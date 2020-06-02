@@ -292,14 +292,22 @@ chi_c_all
     a. Define a bounding box around the cause of the event. 
     
 ```{r}
+one_event <- chi_sql%>%
+  filter(uuid == "c5a73cc6-5242-3172-be5a-cf8990d70cb2")%>%
+  collect()
+one_event
 
 ```
     
     a. What causes all these jams? Some googling might help.
     
+Foot ball game that happened
+    
     a. Plot the number of jams 6AM-6PM CST. Why are there two humps? 
     
 ```{r}
+
+
 
 ```
     
