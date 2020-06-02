@@ -99,22 +99,24 @@ library(ggmap)
 library(RMySQL)
 library(stringr)
 connection <- DBI::dbConnect(RMySQL::MySQL(),
-                      user = "ppha30531",
-                      dbname="Waze2",
-                      port = 3306,
-                      password = "bUYjwnKXf49M2pb",
-                      host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+  user = "ppha30531",
+  dbname = "Waze2",
+  port = 3306,
+  password = "bUYjwnKXf49M2pb",
+  host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
 )
 
 DBI::dbListTables(connection)
 
 chi_alerts_sql <- tbl(connection, "chiAlerts")
 
-#Y bounds: 41.935, 41.896 (W George St to W Chicago Ave
+# Y bounds: 41.935, 41.896 (W George St to W Chicago Ave
 event_data <- chi_alerts_sql %>%
-  filter(str_detect(street, "N Western Ave"),
-        41.896 <= location_y & location_y <= 41.934, 
-        type == "ACCIDENT") %>%
+  filter(
+    str_detect(street, "N Western Ave"),
+    41.896 <= location_y & location_y <= 41.934,
+    type == "ACCIDENT"
+  ) %>%
   collect()
 
 saveRDS(event_data, file = "event_data.rds")
@@ -122,32 +124,35 @@ event_data <- readRDS(file = "event_data.rds")
 
 dbListConnections(MySQL())
 
-lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
 
-event_data%>%
-  group_by(street)%>%
+event_data %>%
+  group_by(street) %>%
   summarize(n())
 ```
 
 ```{r, fig.height = 12}
 
-corridor_7 <- c(left = -87.7, bottom = 41.899 , right =
-  -87.67, top = 41.934)
+corridor_7 <- c(
+  left = -87.7, bottom = 41.899, right =
+    -87.67, top = 41.934
+)
 
-corridor_7_stamenmap <- get_stamenmap(data = event_data, 
-              bbox = corridor_7, 
-              zoom = 15, 
-              maptype = "toner-lite")
+corridor_7_stamenmap <- get_stamenmap(
+  data = event_data,
+  bbox = corridor_7,
+  zoom = 15,
+  maptype = "toner-lite"
+)
 
 corridor_7_map <- ggmap(corridor_7_stamenmap,
-                        base_layer = ggplot(data = event_data)
-                        )
+  base_layer = ggplot(data = event_data)
+)
 
 corridor_7_map
 
-corridor_7_map + 
+corridor_7_map +
   geom_point(aes(location_x, location_y), color = "red")
-  
 ```
 
 1.  Around what intersection are accidents most common? Use Google Street View to look at this intersection. Do you see any problems?
@@ -162,22 +167,26 @@ The intersection where accidents are most common is at the instersection of N We
     
 ```{r}
 connection <- DBI::dbConnect(RMySQL::MySQL(),
-                      user = "ppha30531",
-                      dbname="Waze2",
-                      port = 3306,
-                      password = "bUYjwnKXf49M2pb",
-                      host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+  user = "ppha30531",
+  dbname = "Waze2",
+  port = 3306,
+  password = "bUYjwnKXf49M2pb",
+  host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
 )
 
 chi_alerts_sql <- tbl(connection, "chiAlerts")
 
 event_data <- chi_alerts_sql %>%
-  filter(street %in% c("E 79th St", 
-                       "W 79th St", 
-                       "Chicago Ave",
-                       "E Chicago Ave", 
-                       "W Chicago Ave"),
-         city == "Chicago, IL") %>%
+  filter(
+    street %in% c(
+      "E 79th St",
+      "W 79th St",
+      "Chicago Ave",
+      "E Chicago Ave",
+      "W Chicago Ave"
+    ),
+    city == "Chicago, IL"
+  ) %>%
   collect()
 
 saveRDS(event_data, file = "event_data.rds")
@@ -185,24 +194,26 @@ event_data <- readRDS(file = "event_data.rds")
 
 dbListConnections(MySQL())
 
-lapply( dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
 
-event_data%>%
-  group_by(street)%>%
+event_data %>%
+  group_by(street) %>%
   summarize(n())
 ```
 ```{r}
-event_data <- event_data%>%
-  mutate("corridor" = ifelse(street %in% c("E 79th St", "W 79th St"), 
-                            "79th St", 
-                            "Chicago Ave"),
-         event_date_time = as.POSIXct (pubMillis/1000, origin= "1970-01-01")
-         )
+event_data <- event_data %>%
+  mutate(
+    "corridor" = ifelse(street %in% c("E 79th St", "W 79th St"),
+      "79th St",
+      "Chicago Ave"
+    ),
+    event_date_time = as.POSIXct(pubMillis / 1000, origin = "1970-01-01")
+  )
 
-event_data%>%
-  filter(type %in% c("JAM", "ACCIDENT"))%>%
-  ggplot(aes(hour(event_date_time), fill = corridor)) + 
-    geom_bar(position = "dodge") 
+event_data %>%
+  filter(type %in% c("JAM", "ACCIDENT")) %>%
+  ggplot(aes(hour(event_date_time), fill = corridor)) +
+  geom_bar(position = "dodge")
 ```
 
 a. Using a reasoned approach, choose two additional corridors for comparison.
@@ -212,23 +223,27 @@ a. Using a reasoned approach, choose two additional corridors for comparison.
           
 ```{r}
 connection <- DBI::dbConnect(RMySQL::MySQL(),
-          user = "ppha30531",
-          dbname="Waze2",
-          port = 3306,
-          password = "bUYjwnKXf49M2pb",
-          host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+  user = "ppha30531",
+  dbname = "Waze2",
+  port = 3306,
+  password = "bUYjwnKXf49M2pb",
+  host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
 )
 
 chi_alerts_sql <- tbl(connection, "chiAlerts")
 
 
 event_data_comparison <- chi_alerts_sql %>%
-  filter(street %in% c("E 87th St", 
-                       "W 87th St", 
-                       "E Division St", 
-                       "W Division St", 
-                       "Division St"),
-         city == "Chicago, IL") %>%
+  filter(
+    street %in% c(
+      "E 87th St",
+      "W 87th St",
+      "E Division St",
+      "W Division St",
+      "Division St"
+    ),
+    city == "Chicago, IL"
+  ) %>%
   collect()
 
 saveRDS(event_data_comparison, file = "event_data.rds")
@@ -236,32 +251,39 @@ event_data_comparison <- readRDS(file = "event_data.rds")
 
 dbListConnections(MySQL())
 
-lapply( dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
 
-event_data_comparison%>%
-  group_by(street)%>%
+event_data_comparison %>%
+  group_by(street) %>%
   summarize(n())
 ```
 ```{r}
-event_data_comparison <- event_data_comparison%>%
-  mutate("corridor" = ifelse(street %in% c("E 87th St", "W 87th St"), "87th St", "Division St"),
-         event_date_time = as.POSIXct (pubMillis/1000, origin="1970-01-01")
-         )
+event_data_comparison <- event_data_comparison %>%
+  mutate(
+    "corridor" = ifelse(street %in% c("E 87th St", "W 87th St"), 
+                        "87th St", 
+                        "Division St"),
+    event_date_time = as.POSIXct(pubMillis / 1000, origin = "1970-01-01")
+  )
 
-ggplot(event_data_comparison, 
-      aes(hour(event_date_time), 
-      fill = corridor)) + 
-  geom_bar(position = "dodge") 
+ggplot(
+  event_data_comparison,
+  aes(hour(event_date_time),
+    fill = corridor
+  )
+) +
+  geom_bar(position = "dodge")
 ```
   a. Looking beyond traffic, what other alerts are very common in this area? 
     Do you think these alerts would slow down the 66 / 79? If so, what steps 
     could the City take to address the issues?
       
 ```{r}
-filter(event_data, type != "ROAD_CLOSED")%>%
-ggplot(aes(hour(event_date_time), 
-      fill = type)) + 
-  geom_bar(position = "dodge") 
+filter(event_data, type != "ROAD_CLOSED") %>%
+  ggplot(aes(hour(event_date_time),
+    fill = type
+  )) +
+  geom_bar(position = "dodge")
 ```
 Besides traffic jams, weather hazards and accidents are also common. These would definitely slow down traffic for the buses. There also seems to be a case where 79th street was closed, triggering many event reports.
 
@@ -270,11 +292,11 @@ Besides traffic jams, weather hazards and accidents are also common. These would
 1.  Revisit the event which caused c5a73cc6-5242-3172-be5a-cf8990d70cb2. 
 ```{r}
 connection <- DBI::dbConnect(RMySQL::MySQL(),
-                      user = "ppha30531",
-                      dbname="Waze2",
-                      port = 3306,
-                      password = "bUYjwnKXf49M2pb",
-                      host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+  user = "ppha30531",
+  dbname = "Waze2",
+  port = 3306,
+  password = "bUYjwnKXf49M2pb",
+  host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
 )
 
 chi_alerts_sql <- tbl(connection, "chiAlerts")
@@ -288,37 +310,40 @@ single_event_data <- readRDS(file = "single_event_data.rds")
 
 dbListConnections(MySQL())
 
-lapply( dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
 
 single_event_data
 ```
 a. Define a bounding box around the cause of the event. 
     
 ```{r}
-convert_to_millis<-function(time){
+convert_to_millis <- function(time) {
   time <- ymd_hms(time, tz = "America/Chicago")
   duration <- as.duration(time - ymd_hms("1970-01-01 00:00:00"))
   duration * 1000
 }
 
 connection <- DBI::dbConnect(RMySQL::MySQL(),
-          user = "ppha30531",
-          dbname="Waze2",
-          port = 3306,
-          password = "bUYjwnKXf49M2pb",
-          host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+  user = "ppha30531",
+  dbname = "Waze2",
+  port = 3306,
+  password = "bUYjwnKXf49M2pb",
+  host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
 )
 chi_alerts_sql <- tbl(connection, "chiAlerts")
 
-time_range <- c(start = convert_to_millis("2017-12-24 00:00:00"), 
-                end = convert_to_millis("2017-12-25 00:00:00"))
+time_range <- c(
+  start = convert_to_millis("2017-12-24 00:00:00"),
+  end = convert_to_millis("2017-12-25 00:00:00")
+)
 time_range
-#Event date: 2017-12-24 12:02:55 CST
+# Event date: 2017-12-24 12:02:55 CST
 single_event_data <- chi_alerts_sql %>%
-  filter(1514095200000 <= pubMillis, pubMillis<= 1514181600000,
-        -87.624138 <= location_x & location_x <= -87.6,
-        41.855 <= location_y & location_y <= 41.89
-        )%>%
+  filter(
+    1514095200000 <= pubMillis, pubMillis <= 1514181600000,
+    -87.624138 <= location_x & location_x <= -87.6,
+    41.855 <= location_y & location_y <= 41.89
+  ) %>%
   collect()
 
 #-87.624138 <= location_x, location_x <= -87.6,
@@ -329,24 +354,30 @@ single_event_data <- readRDS(file = "single_event_data.rds")
 
 dbListConnections(MySQL())
 
-lapply( dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
 
-single_event_data <- single_event_data%>%
-  mutate(event_date_time = force_tz(as.POSIXct (pubMillis/1000, origin="1970-01-01")), "America/Chicago")
-# OlsonNames() "America/Chicago" 
-single_event_bounds <- c(left = -87.624138, bottom = 41.855 , right =
-  -87.6, top = 41.89)
+single_event_data <- single_event_data %>%
+  mutate(event_date_time = force_tz(
+    as.POSIXct(pubMillis / 1000, origin = "1970-01-01")), 
+    "America/Chicago")
+# OlsonNames() "America/Chicago"
+single_event_bounds <- c(
+  left = -87.624138, bottom = 41.855, right =
+    -87.6, top = 41.89
+)
 
-single_event_stamenmap <- get_stamenmap(data = single_event_data, 
-              bbox = single_event_bounds, 
-              zoom = 17, 
-              maptype = "toner-lite")
+single_event_stamenmap <- get_stamenmap(
+  data = single_event_data,
+  bbox = single_event_bounds,
+  zoom = 17,
+  maptype = "toner-lite"
+)
 
 single_event_map <- ggmap(single_event_stamenmap,
-                        base_layer = ggplot(data = single_event_data)
-                        )
+  base_layer = ggplot(data = single_event_data)
+)
 
-single_event_map + 
+single_event_map +
   geom_point(aes(location_x, location_y, color = hour(event_date_time)))
 ```
     
@@ -357,9 +388,11 @@ a. Plot the number of jams 6AM-6PM CST. Why are there two humps?
     
 ```{r}
 single_event_data %>%
-  filter(type == "JAM",
-         hour(event_date_time) %in% c(6:18)) %>%
-ggplot(aes(event_date_time))+
+  filter(
+    type == "JAM",
+    hour(event_date_time) %in% c(6:18)
+  ) %>%
+  ggplot(aes(event_date_time)) +
   geom_freqpoly(bins = 52)
 ```
 There are 2 humps at (about) 11:45 AM and 3:30 PM because there was a football game at Soldiers field that day, which caused traffic on Lake Shore Drive. The game on Dec. 24 started at 1:00 PM and lasted until about 4:00 PM. These start and end times match up with the two peaks.
@@ -372,25 +405,30 @@ a. Place one vertical line at each hump.
     
 ```{r}
 single_event_data %>%
-  filter(type == "JAM",
-         hour(event_date_time) %in% c(6:18)) %>%
-ggplot(aes(event_date_time))+
+  filter(
+    type == "JAM",
+    hour(event_date_time) %in% c(6:18)
+  ) %>%
+  ggplot(aes(event_date_time)) +
   geom_freqpoly(bins = 52) +
-  geom_vline(xintercept = ymd_hms("2017-Dec-24 11:50:00", tz = "America/Chicago")) +
-  geom_vline(xintercept = ymd_hms("2017-Dec-24 15:20:00", tz = "America/Chicago"))
+  geom_vline(xintercept = ymd_hms("2017-Dec-24 11:50:00", 
+                                  tz = "America/Chicago")) +
+  geom_vline(xintercept = ymd_hms("2017-Dec-24 15:20:00", 
+                                  tz = "America/Chicago"))
 ```
     
 a. Next, propose a quantitative measure of traffic jam severity that combines 
 the number of traffic `JAM` alerts with information in the `subtype` variable. 
     
 ```{r}
-single_event_data <- single_event_data%>%
-  mutate(jam_severity = case_when(subtype == "JAM_LIGHT_TRAFFIC" ~ 1,
-                                  subtype == "JAM_MODERATE_TRAFFIC" ~ 2,
-                                  subtype == "JAM_HEAVY_TRAFFIC" ~ 3,
-                                  subtype == "JAM_STAND_STILL_TRAFFIC" ~ 4)
-  )
-#https://stackoverflow.com/questions/24459752/can-dplyr-package-be-used-for-conditional-mutating
+single_event_data <- single_event_data %>%
+  mutate(jam_severity = case_when(
+    subtype == "JAM_LIGHT_TRAFFIC" ~ 1,
+    subtype == "JAM_MODERATE_TRAFFIC" ~ 2,
+    subtype == "JAM_HEAVY_TRAFFIC" ~ 3,
+    subtype == "JAM_STAND_STILL_TRAFFIC" ~ 4
+  ))
+# https://stackoverflow.com/questions/24459752/can-dplyr-package-be-used-for-conditional-mutating
 ```
     
 a. Plot this measure from 6AM-6PM CST. Is there any information that is 
@@ -399,10 +437,12 @@ of jams? If so, what is it?
     
 ```{r}
 single_event_data %>%
-  filter(type == "JAM",
-         hour(event_date_time) %in% c(6:18)) %>%
-  ggplot(aes(hour(event_date_time), jam_severity), jam_severity)+
-    geom_col() 
+  filter(
+    type == "JAM",
+    hour(event_date_time) %in% c(6:18)
+  ) %>%
+  ggplot(aes(hour(event_date_time), jam_severity), jam_severity) +
+  geom_col()
 ```
 The timing of the peaks don't change. But based on the severity measure, the 11:00 AM traffic is actually worse than the 3:00 PM traffic. This was not apparent from the previous graph, which made it look like there was more traffic at 3:00 PM.
     
@@ -412,28 +452,30 @@ The timing of the peaks don't change. But based on the severity measure, the 11:
 UUID: 	1cc6acea-750c-3b14-84cb-12ab3136e0cb
 ```{r}
 connection <- DBI::dbConnect(RMySQL::MySQL(),
-                      user = "ppha30531",
-                      dbname="Waze2",
-                      port = 3306,
-                      password = "bUYjwnKXf49M2pb",
-                      host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+  user = "ppha30531",
+  dbname = "Waze2",
+  port = 3306,
+  password = "bUYjwnKXf49M2pb",
+  host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
 )
 chi_alerts_sql <- tbl(connection, "chiAlerts")
 
-#Event PubMillis 1511191459107
+# Event PubMillis 1511191459107
 
-1511191459107		+ c(-7200000, 7200000)
+1511191459107 + c(-7200000, 7200000)
 
-#https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
-#Each degree of latitude is approximately 69 miles (111 kilometers) apart
-#	-87.66080	42.00315
--87.66080 + c(-.1 / 69,.1 / 69)
-42.00315 + c(-.1 / 69,.1 / 69)
+# https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
+# Each degree of latitude is approximately 69 miles (111 kilometers) apart
+# 	-87.66080	42.00315
+-87.66080 + c(-.1 / 69, .1 / 69)
+42.00315 + c(-.1 / 69, .1 / 69)
 
 multiple_event_data <- chi_alerts_sql %>%
-  filter(-87.66225 <= location_x & location_x <= -87.65935,
-        42.0017 <= location_y & location_y <= 42.0046, 
-        1511184259107 <= pubMillis, pubMillis<= 1511198659107)%>%
+  filter(
+    -87.66225 <= location_x & location_x <= -87.65935,
+    42.0017 <= location_y & location_y <= 42.0046,
+    1511184259107 <= pubMillis, pubMillis <= 1511198659107
+  ) %>%
   collect()
 
 saveRDS(multiple_event_data, file = "multiple_event_data.rds")
@@ -441,43 +483,59 @@ multiple_event_data <- readRDS(file = "multiple_event_data.rds")
 
 dbListConnections(MySQL())
 
-lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
 
-multiple_event_data <- multiple_event_data%>%
-  mutate(event_date_time = as.POSIXct (pubMillis/1000, origin="1970-01-01", tz = "America/Chicago"))
+multiple_event_data <- multiple_event_data %>%
+  mutate(event_date_time = as.POSIXct(pubMillis / 1000, 
+                                      origin = "1970-01-01", 
+                                      tz = "America/Chicago"))
 
-multiple_event_bounds <- c(left = -87.66225, bottom = 42.0017 , right =
-  -87.65935, top = 42.0046)
+multiple_event_bounds <- c(
+  left = -87.66225, bottom = 42.0017, right =
+    -87.65935, top = 42.0046
+)
 
-multiple_event_stamenmap <- get_stamenmap(data = multiple_event_data, 
-              bbox = multiple_event_bounds, 
-              zoom = 18, 
-              maptype = "toner-lite")
+multiple_event_stamenmap <- get_stamenmap(
+  data = multiple_event_data,
+  bbox = multiple_event_bounds,
+  zoom = 18,
+  maptype = "toner-lite"
+)
 
 multiple_event_map <- ggmap(multiple_event_stamenmap,
-                        base_layer = ggplot(data = multiple_event_data)
-                        )
+  base_layer = ggplot(data = multiple_event_data)
+)
 
-multiple_event_map + 
+multiple_event_map +
   geom_point(aes(location_x, location_y, shape = subtype))
 ```
+
 Make a plot where the y-axis is the number of traffic jam alerts and the x-axis is the five-minute interval from two hours before the accident to two hours after the accident.  Warning:
 This question is harder than it first appears. You might want to review R4DS chapter 12.5 (lecture note 5) on missing values and chapter 16.4 (lecture note 9). 
 
-```{r}
-categories <- c(-24:24)
-multiple_event_data%>%
-mutate(event_epoch_millis = pubMillis - convert_to_millis(event_date_time), 
-      bucket = factor(event_epoch_millis %/% 300000, levels = categories))%>%
-        group_by(bucket)%>%
-        summarize(count = n()) %>%
-        complete(bucket, fill = list(count = 0))%>%
-  ggplot(aes(bucket, count)) +
-  geom_col() + 
-  labs(title = "Timing of Events around Major Accidents",
-      x = "Minutes Before/After Major Accident (5 min increment)",
-      y = "Mean Number of Events")
+```{r, fig.height = 10}
+convert_to_millis <- function(time) {
+  duration <- as.duration(time - ymd_hms("1970-01-01 00:00:00"))
+  as.numeric(duration * 1000)
+}
 
+categories <- c(-24:24)
+multiple_event_data %>%
+  mutate(
+    event_epoch_millis = pubMillis - convert_to_millis(event_date_time),
+    bucket = factor(event_epoch_millis %/% 300000, levels = categories)
+  ) %>%
+  group_by(bucket) %>%
+  summarize(count = n()) %>%
+  complete(bucket, fill = list(count = 0)) %>%
+  ggplot(aes(bucket, count)) +
+  geom_col() +
+  labs(
+    title = "Timing of Events around Major Accidents",
+    x = "Minutes Before/After Major Accident (5 min increment)",
+    y = "Mean Number of Events"
+  ) +
+  coord_flip()
 ```
 
 1.  Building on your work for the prior question, write a function that takes as its 
@@ -485,58 +543,54 @@ mutate(event_epoch_millis = pubMillis - convert_to_millis(event_date_time),
     frame with the number of alerts in each five-minute interval from two hours before to 
     two hours after.
     
-```{r}
-convert_to_millis<-function(time){
-  duration <- as.duration(time - ymd_hms("1970-01-01 00:00:00"))
-  as.numeric(duration * 1000)
-}
-
-get_alert_summary <- function(uuid, date_time, latitude, longitude){
-  cat("test1")
+```{r, message = FALSE, warning = FALSE}
+get_alert_summary <- function(uuid, date_time, latitude, longitude) {
   connection <- DBI::dbConnect(RMySQL::MySQL(),
-                      user = "ppha30531",
-                      dbname="Waze2",
-                      port = 3306,
-                      password = "bUYjwnKXf49M2pb",
-                      host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+    user = "ppha30531",
+    dbname = "Waze2",
+    port = 3306,
+    password = "bUYjwnKXf49M2pb",
+    host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
   )
   chi_alerts_sql <- tbl(connection, "chiAlerts")
-  
+
   time_min <- convert_to_millis(date_time) - 7200000
-  time_max<- convert_to_millis(date_time) + 7200000
+  time_max <- convert_to_millis(date_time) + 7200000
   x_min <- longitude - .1 / 69
-  x_max<- longitude + .1 / 69
-  y_min<- latitude - .1 /69
-  y_max <- latitude + .1 /69
-  
-  cat("/ntime_min:",time_min,"/ntime_max:",time_max,"/nxmin:",x_min)
+  x_max <- longitude + .1 / 69
+  y_min <- latitude - .1 / 69
+  y_max <- latitude + .1 / 69
+
   multiple_event_data <- chi_alerts_sql %>%
-    filter(time_min <= pubMillis, pubMillis<= time_max,
-          x_min <= location_x, location_x <= x_max,
-          y_min <= location_y, location_y <= y_max
-          ) %>%
+    filter(
+      time_min <= pubMillis, pubMillis <= time_max,
+      x_min <= location_x, location_x <= x_max,
+      y_min <= location_y, location_y <= y_max
+    ) %>%
     collect()
-  cat("test3")
   saveRDS(multiple_event_data, file = "multiple_event_data.rds")
   multiple_event_data <- readRDS(file = "multiple_event_data.rds")
 
-  lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x) )
-  
-  
+  lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
+
   categories <- c(-24:24)
-  
-  multiple_event_data%>%
-  mutate(event_epoch_millis = pubMillis - convert_to_millis(date_time), 
-        bucket = factor(event_epoch_millis %/% 300000, levels = categories))%>%
-          group_by(bucket)%>%
-          summarize(count = n()) %>%
-          complete(bucket, fill = list(count = 0))
+
+  multiple_event_data %>%
+    mutate(
+      event_epoch_millis = pubMillis - convert_to_millis(date_time),
+      bucket = factor(event_epoch_millis %/% 300000, levels = categories)
+    ) %>%
+    group_by(bucket) %>%
+    summarize(count = n()) %>%
+    complete(bucket, fill = list(count = 0))
 }
 
-get_alert_summary("df0ae6f2-22ae-3977-8168-0290610801f9",
-                  as.POSIXct (1511837969275/1000, origin="1970-01-01"),
-                  41.8421,
-                  -87.61015)
+get_alert_summary(
+  "df0ae6f2-22ae-3977-8168-0290610801f9",
+  as.POSIXct(1511837969275 / 1000, origin = "1970-01-01"),
+  41.8421,
+  -87.61015
+)
 ```
     
 1.  Make a data frame with every major accident on Nov 20, 2017. 
@@ -546,18 +600,18 @@ get_alert_summary("df0ae6f2-22ae-3977-8168-0290610801f9",
     Tip: This may take upwards of 20 minutes to run on all major accidents. Use your function on a small sample of
     accidents first to make sure your code is working as expected before trying to run on all accidents. 
     
-```{r}
+```{r, message = FALSE, warning = FALSE}
 connection <- DBI::dbConnect(RMySQL::MySQL(),
-                      user = "ppha30531",
-                      dbname="Waze2",
-                      port = 3306,
-                      password = "bUYjwnKXf49M2pb",
-                      host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+  user = "ppha30531",
+  dbname = "Waze2",
+  port = 3306,
+  password = "bUYjwnKXf49M2pb",
+  host = "uchicagowazereplica2.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
 )
 chi_alerts_sql <- tbl(connection, "chiAlerts")
 
 multiple_event_data <- chi_alerts_sql %>%
-  filter(subtype == "ACCIDENT_MAJOR")%>%
+  filter(subtype == "ACCIDENT_MAJOR") %>%
   collect()
 
 saveRDS(multiple_event_data, file = "multiple_event_data.rds")
@@ -565,41 +619,48 @@ multiple_event_data <- readRDS(file = "multiple_event_data.rds")
 
 dbListConnections(MySQL())
 
-lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+lapply(dbListConnections(MySQL()), function(x) dbDisconnect(x))
 
-multiple_event_data <- multiple_event_data%>%
-  mutate(event_date_time = as.POSIXct (pubMillis/1000, origin="1970-01-01", tz = "America/Chicago"))%>%
-  filter(date(event_date_time) == ymd("2017-11-20"))%>%
+multiple_event_data <- multiple_event_data %>%
+  mutate(event_date_time = as.POSIXct(pubMillis / 1000, 
+                                      origin = "1970-01-01", 
+                                      tz = "America/Chicago")) %>%
+  filter(date(event_date_time) == ymd("2017-11-20")) %>%
   distinct(uuid, .keep_all = TRUE)
-#http://www.datasciencemadesimple.com/remove-duplicate-rows-r-using-dplyr-distinct-function/
+# http://www.datasciencemadesimple.com/remove-duplicate-rows-r-using-dplyr-distinct-function/
 
-subset <- multiple_event_data%>%head(5)
+subset <- multiple_event_data %>% head(5)
 
-test <- list("df0ae6f2-22ae-3977-8168-0290610801f9",
-                  as.POSIXct (1511837969275/1000, origin="1970-01-01"),
-                  41.8421,
-                  -87.61015)
+test <- list(
+  "df0ae6f2-22ae-3977-8168-0290610801f9",
+  as.POSIXct(1511837969275 / 1000, origin = "1970-01-01"),
+  41.8421,
+  -87.61015
+)
 
-as.POSIXct (1511837969275/1000, origin="1970-01-01")
+as.POSIXct(1511837969275 / 1000, origin = "1970-01-01")
 
-subset_test <-""
+subset_test <- ""
 
 
 alert_summary <- ""
-for(i in seq_along(1:nrow(multiple_event_data))){
-  alert_summary[i] <-list(get_alert_summary(uuid = multiple_event_data$uuid[i], 
-                                    date_time = multiple_event_data$event_date_time[i], 
-                                    latitude = multiple_event_data$location_y[i], 
-                                    longitude = multiple_event_data$location_x[i]))
+for (i in seq_along(1:nrow(multiple_event_data))) {
+  alert_summary[i] <- list(get_alert_summary(
+    uuid = multiple_event_data$uuid[i],
+    date_time = multiple_event_data$event_date_time[i],
+    latitude = multiple_event_data$location_y[i],
+    longitude = multiple_event_data$location_x[i]
+  ))
 }
 
 combined_table <- colnames(alert_summary)
 
-for(i in seq_along(1:length(alert_summary))){
+for (i in seq_along(1:length(alert_summary))) {
   combined_table <- bind_rows(combined_table, alert_summary[[i]])
 }
 
-full_event_summary <- combined_table %>% group_by(bucket)%>%
+full_event_summary <- combined_table %>%
+  group_by(bucket) %>%
   summarize(mean_events = mean(count))
 ```
     
@@ -607,12 +668,15 @@ full_event_summary <- combined_table %>% group_by(bucket)%>%
     answer here is a single plot that summarizes jams across major accidents, not one 
     plot for each accident. Congratulations! This is your first event study.
     
-```{r}
-ggplot(full_event_summary, aes(x=bucket, y = mean_events))+
-  geom_col() + 
-  labs(title = "Timing of Events around Major Accidents",
-       x = "Minutes Before/After Major Accident (5 min increment)",
-       y = "Mean Number of Events")
+```{r, fig.height = 10}
+ggplot(full_event_summary, aes(x = bucket, y = mean_events)) +
+  geom_col() +
+  labs(
+    title = "Timing of Events around Major Accidents",
+    x = "Minutes Before/After Major Accident (5 min increment)",
+    y = "Mean Number of Events"
+  ) +
+  coord_flip()
 ```
     
     
