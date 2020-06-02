@@ -1,6 +1,6 @@
 ---
 title: "Markdown Headers"
-author: "Yuxi Wu"
+author: "Jake Interrante and Jodie Lawrence"
 date: "29/03/2020"
 output:
   html_document:
@@ -23,7 +23,7 @@ Follow the style guide (10 pts.)
 
 This submission is our work alone and complies with the 30535 integrity policy.
 
-Add your initials to indicate your agreement: **__**
+Add your initials to indicate your agreement: **JCI**
 
 Add names of anyone you discussed this problem set with: **__**
 
@@ -68,23 +68,54 @@ your final grade will be $90 \cdot .9 = 81$.
 
 1. Which of the following methods will cause problems as you develop your 
   solutions?
-    a. Use `filter()` to reduce the amount of data you pull while exploring data.
-       For example, you can filter by time and location to only get data for a 
-       small part of the city and/or over a short time period.
-    a. `collect()` a small sample data set so that the you have data in memory on your     
-       computer.
+    a. Use `filter()` to reduce the amount of data you pull while exploring data. For example, you can filter by time and location to only get data for a small part of the city and/or over a short time period.
+    a. `collect()` a small sample data set so that the you have data in memory on your computer.
     a. `collect()` the entire data set each time you want to work with it.
+c. collect() will cause problems, because each time we call it, the server needs to wake up and send us the entire data set, which is quite large. This will take a lot of time and bandwidth. Instead, we should use functions like filter and smaller collect() pulls to use the data more efficiently.
+```{r}
+#https://world-georss.waze.com/rtserver/web/TGeoRSS?tk=?&ccp_partner_name=Test&polygon=34.582214,32.581065;35.389709,32.460638;35.760498,31.998286;35.364990, 31.341432;34.326782,31.496128;34.582214,32.581065;34.582214,32.581065&format= XML&types=traffic,alerts,irregularities
+connection <- DBI::dbConnect(RMySQL::MySQL(),
+                      user = "ppha30531",
+                      dbname="Waze2",
+                      port = 3306,
+                      password = "bUYjwnKXf49M2pb",
+                      host = "uchicagowaze.cfykgneqoh8w.us-west-2.rds.amazonaws.com"
+)
 
-1. As is the case with any data set, Waze has to make decisions about what data
-  to store and how to measure it. Review the data documentation and the rest of 
-  the problem set. Propose a variable that Waze could feasibly track that is not 
-  available now or feasible and better way a to measure a variable currently in 
-  the dataset. Support your proposal with reasoning.
+# Show which tables are available from the Waze database
+DBI::dbListTables(connection)
 
-1. As is the case with most consumer data, Waze users are self-selecting. Write a 
-  few detailed sentences about how you think self-selection influences what data 
+# Create table referencing the data in the chiAlerts table
+# of the waze database
+chi_alerts_sql <- tbl(connection, "chiAlerts")
+
+# Create local variable for data with a specified UUID
+# and time it
+before <- Sys.time()
+event_data <- chi_alerts_sql %>%
+  filter(uuid == "c5a73cc6-5242-3172-be5a-cf8990d70cb2") %>%
+  collect()
+after <- Sys.time()
+after - before
+
+# Save collected data as an rds file, access and read it
+saveRDS(event_data, file = "event_data.rds")
+event_data <- readRDS(file = "event_data.rds")
+
+# View active connections
+dbListConnections(MySQL())
+
+# End active connections
+lapply( dbListConnections(MySQL()), function(x) dbDisconnect(x) )
+```
+
+1. As is the case with any data set, Waze has to make decisions about what data to store and how to measure it. Review the data documentation and the rest of the problem set. Propose a variable that Waze could feasibly track that is not available now or feasible and better way a to measure a variable currently in the dataset. Support your proposal with reasoning.
+  
+  I would like to see Waze predict when draw bridges will raise and lower to allow ships to pass under. This is a major problem for people who have to commute over those bridges because it's so unpredictable. It can easily add 20+ minutes to a commute. As is, Waze doesn't know that bridges will raise until traffic has stopped and Wazers report it. But if Waze could cooperate with the authorities that control bridges (including cities, states, and the army corps of engineers) they could warn drivers in advance of these delays, allowing users to seek alternate routes. The challenge for adding this new variable would be coordinating with these authorities to generate and share the data; there are likely to be many agencies involved in maintaining these bridges, and some of them may not have the infrastructure that would be needed to report this data. But another approach might be to use live marine traffic data like https://www.marinetraffic.com/ to "guess" when a bridge might need to be raised to allow a ship under.
+
+1. As is the case with most consumer data, Waze users are self-selecting. Write a few detailed sentences about how you think self-selection influences what data 
   is present. 
-    
+  Waze users are likely self selecting in that they are tech-savvy people, which makes me think they are probably younger, more affluent, and more urban than the general population. This could cause them to overreport traffic in cities, while data in more rural areas is more sparse. 
     
 # Waze vision zero (15 points)
 
@@ -92,18 +123,18 @@ Read up on the `ggmap` package, which will be useful for doing these problems.
 Particularly, get to know the `get_stamenmap()` function. If you find yourself 
 downloading 1000s of tiles, check your settings. You are welcome to try using
 google basemaps as well; while free for new users, this will require a credit
-card. The version of `ggmap` on CRAN is out of date, instead find and install it 
-from github.
-
-1.  Look at Vision Zero Neighborhood High Crash Corridor #7. Plot the accidents in 
-    this corridor on a map. 
+card. The version of `ggmap` on CRAN is out of date, instead find and install it from github.
+```{r}
+library(ggmap)
+?get_stamenmap
+```
+1.  Look at Vision Zero Neighborhood High Crash Corridor #7. Plot the accidents in this corridor on a map. 
     
 ```{r}
-# YOUR CODE GOES HERE  (Please delete)
+
 ```
 
-1.  Around what intersection are accidents most common? Use Google Street View to look 
-    at this intersection. Do you see any problems?
+1.  Around what intersection are accidents most common? Use Google Street View to look at this intersection. Do you see any problems?
     
 
 # Transit Oriented Development (15 points)
