@@ -81,6 +81,8 @@ c. collect() all will cause problems, because each time we call it, the server n
   
 I would like to see Waze predict when draw bridges will raise and lower to allow ships to pass under. This is a major problem for people who have to commute over those bridges because it's so unpredictable. It can easily add 20+ minutes to a commute. As is, Waze doesn't know that bridges will raise until traffic has stopped and Wazers report it. But if Waze could cooperate with the authorities that control bridges (including cities, states, and the army corps of engineers) they could warn drivers in advance of these delays, allowing users to seek alternate routes. The challenge for adding this new variable would be coordinating with these authorities to generate and share the data; there are likely to be many agencies involved in maintaining these bridges, and some of them may not have the infrastructure that would be needed to report this data. But another approach might be to use live marine traffic data like https://www.marinetraffic.com/ to "guess" when a bridge might need to be raised to allow a ship under.
 
+FEEDBACK: This is a super interesting idea! If I were a driver, I bet I'd love this feature. Same thing for railroads too.
+
 1. As is the case with most consumer data, Waze users are self-selecting. Write a few detailed sentences about how you think self-selection influences what data is present. 
 
 Waze users are likely self selecting in that they are tech-savvy people, which makes me think they are probably younger, more affluent, and more urban than the general population. This could cause them to overreport traffic in cities, while data in more rural areas is more sparse. 
@@ -157,6 +159,8 @@ corridor_7_map +
 The intersection where accidents are most common is at the instersection of N Western Ave, West Logan Ave, Kennedy Western Rd and Kennedy Fullteron Rd. This intersection is extremely hard to navigate because the streets don't intersect in a predictable way. It is difficult for drivers to know which lanes go to which road, and also to know which lanes are available to other cars. Making matters worse,  the Windy City Field House parking lot has an outlet that feeds into the intersection, creating yet another unexpected point of entry to the intersection.
     
 # Transit Oriented Development (15 points)
+
+FEEDBACK: Your plots in this section are great, but they should have labels and descriptive titles.
 
 1. On October 21, the City of Chicago declared (https://www.cityofchicago.org/city/en/depts/mayor/press_room/press_releases/2018/october/5Million_TransitOriented_Development_HighRidership_Bus_Corridors.html) the 79 and 66 bus routes as areas of focus for transit oriented development. The City says the plan addresses bus "slow zones". Note: Watch out for "179th St". 
 
